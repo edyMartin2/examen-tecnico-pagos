@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: fastapi_container
+    command: uvicorn api.src.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URL=mongodb://mongo:27017
+      - DB_NAME=transactions_db
+    depends_on:
+      - mongo
+    networks:
+      - app_network
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo_container
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app_network
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: rabbitmq_tx_server
+    ports:
+      - "5672:5672"   # Puerto de comunicación de datos (AMQP)
+      - "15672:15672" # Puerto de la interfaz web (Dashboard)
+    environment:
+      RABBITMQ_DEFAULT_USER: user_admin
+      RABBITMQ_DEFAULT_PASS: password_secret
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app_network
+
+  worker:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    container_name: worker
+    volumes:
+      - .:/app
+    depends_on:
+      - rabbitmq
+      - mongo
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - MONGODB_URL=mongodb://mongo:27017
+      - DB_NAME=transactions_db
+    networks:
+      - app_network
+
+  webapp:
+    build:
+      context: ./webapp
+      dockerfile: Dockerfile
+    container_name: webapp_container
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./webapp:/app
+      - /app/node_modules
+    networks:
+      - app_network
+    environment:
+      - VITE_API_URL=http://localhost:8000
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  rabbitmq_data:

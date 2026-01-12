@@ -20,9 +20,11 @@ jobs:
 
     - name: Install dependencies
       run: |
+        cd api
         pip install -r requirements.txt
 
     - name: Run Tests
       run: |
+        cd api
         export PYTHONPATH=$PYTHONPATH:.
         pytest

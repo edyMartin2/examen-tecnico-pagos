@@ -59,6 +59,7 @@ function CreateTransaction() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': ''
                 },
                 body: JSON.stringify(payload),
             });

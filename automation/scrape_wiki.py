@@ -45,7 +45,8 @@ def scrape_wikipedia():
                 "text": result_text
             })
             headers = {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': ''
             }
             
             response = requests.request("POST", url, headers=headers, data=payload)

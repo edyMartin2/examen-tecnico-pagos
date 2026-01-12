@@ -66,6 +66,7 @@ function TransactionList() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': ''
                 },
                 body: JSON.stringify({ id: transactionId }),
             });
